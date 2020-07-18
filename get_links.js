@@ -74,7 +74,6 @@ const urls = []
 
 
 title_url_desc_tuples.forEach(tuple => {
-  console.log('2');
   let title;
   let url;
   let description;
@@ -82,12 +81,13 @@ title_url_desc_tuples.forEach(tuple => {
 
 
   title = sanitize(title);
-  const descHead = sanitize(description.split().slice(0,30).join(' '));
+  const descHead = sanitize(description.split(' ').slice(0,10).join(' '));
+  console.log(descHead);
 
-  const correspondentName = descHead.replace(/[cC]orrespondent,? (\\w+ [\\w-]+),? .*/, '\1');
-  const bureauName = descHead.replace(/.*EBC (.*?) [cC]orrespondent.*/, '\1');
+  const correspondentName = descHead.replace(/.*[cC]orrespondent,? ([\w-]+ [\w-]+),? .*/, '$1');
+  const bureauName = descHead.replace(/.*EBC (.*?) (Bureau )?[cC]orrespondent.*/, '$1') + ' Bureau';
 
-  const keywordMatches = keywordsList.filter(keyword => descHead.includes(keyword));
+  const keywordMatches = keywordsList.filter(keyword => description.includes(keyword) || title.includes(keyword));
   if (keywordMatches) {
     usedItems += ` - ${title} (${correspondentName}, ${bureauName}) ${url}\n`;
     urls.push(url);

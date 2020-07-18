@@ -63,8 +63,8 @@ for title, url, desc in title_url_desc_tuples:
     title = sanitize(title)
     desc_head = sanitize(' '.join(desc.split()[:30]))
 
-    correspondent_name = re.sub('.*[cC]orrespondent,? (\\w+ [\\w-]+),? .*', '\\1',  desc_head)
-    bureau_name = re.sub('.*EBC (.*?) [cC]orrespondent.*', '\\1',  desc_head)
+    correspondent_name = re.sub('.*[cC]orrespondent,? ([\\w-]+ [\\w-]+),? .*', '\\1',  desc_head)
+    bureau_name = re.sub('.*EBC (.*?) (Bureau ?)[cC]orrespondent.*', '\\1',  desc_head)
 
     for keyword in keywords:
         if (keyword.lower() in title.lower() or keyword.lower() in desc_head.lower()):
