@@ -2,15 +2,32 @@
 const app = Application.currentApplication();
 app.includeStandardAdditions = true;
 
-//const playlist_id = app.displayDialog('Playlist id', { defaultAnswer: ''});
-playlist_id = 'PLMf7voIq6C7ri7OahDXYfYdyzIeWS-w54'
-//const keywordsFilepath = app.displayDialog('Keywords list file', { defaultAnswer: ''});
-keywordsFilepath = '/Users/azvasquez/keywords';
-
-
 // Getting the ytdn api key
 ObjC.import('stdlib')
 const apiKey = $.getenv('YTDN_API_KEY')
+
+if (!apiKey){
+  app.displayDialog('Environment variable YTDN_API_KEY is unset.', {withIcon: 'caution'});
+  $.exit(1);
+}
+
+const playlist_id = app.displayDialog('Playlist id', { defaultAnswer: ''}).textReturned;
+//playlist_id = 'PLMf7voIq6C7ri7OahDXYfYdyzIeWS-w54'
+
+
+keywordsList = []
+
+let i = 1;
+while (true){
+  const newKeyword = app.displayDialog(`Keyword for video ${i} (leave blank if done)`, { defaultAnswer: ''}).textReturned;
+  if (newKeyword != '') keywordsList.push(newKeyword);
+  else break;
+  i++;
+}
+//const keywordsFilepath = app.displayDialog('Keywords list file', { defaultAnswer: ''});
+//keywordsFilepath = '/Users/azvasquez/keywords';
+
+
 
 function writeFile(filepath, text){
   const fh = app.openForAccess(Path(filepath), {writePermission: true});
@@ -37,7 +54,6 @@ function sendQuery(page_token){
   const responseData = JSON.parse(data)
 
   items = responseData.items
-  console.log(items)
 
   if (responseData.nextPageToken){
     items.push(...sendQuery(responseData.nextPageToken));
@@ -48,7 +64,6 @@ function sendQuery(page_token){
 
 
 const items = sendQuery(null)
-
 
 
 
@@ -68,7 +83,6 @@ function sanitize(s){
 }
 
 
-const keywordsList = app.read(Path(keywordsFilepath)).split('\n');
 let usedItems = 'Features:\n';
 const urls = []
 
@@ -82,13 +96,12 @@ title_url_desc_tuples.forEach(tuple => {
 
   title = sanitize(title);
   const descHead = sanitize(description.split(' ').slice(0,10).join(' '));
-  console.log(descHead);
 
   const correspondentName = descHead.replace(/.*[cC]orrespondent,? ([\w-]+ [\w-]+),? .*/, '$1');
   const bureauName = descHead.replace(/.*EBC (.*?) (Bureau )?[cC]orrespondent.*/, '$1') + ' Bureau';
 
-  const keywordMatches = keywordsList.filter(keyword => description.includes(keyword) || title.includes(keyword));
-  if (keywordMatches) {
+  const keywordMatches = keywordsList.filter(keyword => (description.toLowerCase().includes(keyword.toLowerCase()) || title.toLowerCase().includes(keyword.toLowerCase())));
+  if (keywordMatches.length != 0) {
     usedItems += ` - ${title} (${correspondentName}, ${bureauName}) ${url}\n`;
     urls.push(url);
   }
